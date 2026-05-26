@@ -128,6 +128,17 @@ def cmd_machine(args):
     print(f"studio machine: {s.machine}")
 
 
+def cmd_full_smoke(args):
+    s = studio()
+    s.start()
+    device = "cpu" if "CPU" in str(s.machine).upper() else "cuda"
+    print(f"studio machine: {s.machine} -> device={device}")
+    print("syncing repo...")
+    s.run(f"cd {remote_cwd()} && git pull && pip install -e . > /dev/null")
+    print("running full-smoke pipeline (this may take a few minutes)...")
+    print(s.run(f"cd {remote_cwd()} && bash scripts/studio_full_smoke.sh {device}"))
+
+
 def cmd_smoke(args):
     s = studio()
     s.start()
@@ -240,6 +251,9 @@ def main():
     p = sub.add_parser("smoke", help="end-to-end smoke on the Studio (fake data, 2 epoch DCGAN on cuda)")
     p.add_argument("--machine", default=os.environ.get("LIGHTNING_MACHINE", "T4"))
     p.set_defaults(func=cmd_smoke)
+
+    p = sub.add_parser("full-smoke", help="full pipeline smoke on Studio: data, all 3 models, eval, figures, report")
+    p.set_defaults(func=cmd_full_smoke)
 
     p = sub.add_parser("data", help="prepare data splits inside the Studio")
     p.set_defaults(func=cmd_data)
