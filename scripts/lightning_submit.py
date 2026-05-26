@@ -112,6 +112,13 @@ def cmd_setup(args):
     print("ready. next: upload dataset via Studio UI, then `python scripts/lightning_submit.py data`")
 
 
+def cmd_sync(args):
+    s = studio()
+    s.start()
+    s.run(f"cd {remote_cwd()} && git pull && pip install -e . > /dev/null")
+    print("studio synced with latest repo + reinstalled.")
+
+
 def cmd_data(args):
     s = studio()
     s.start()
@@ -184,6 +191,9 @@ def main():
     p = sub.add_parser("setup", help="create Studio, clone repo, install deps")
     p.add_argument("--stop", action="store_true", help="stop the Studio after setup to save credits")
     p.set_defaults(func=cmd_setup)
+
+    p = sub.add_parser("sync", help="git pull + reinstall on Studio after local code changes")
+    p.set_defaults(func=cmd_sync)
 
     p = sub.add_parser("data", help="prepare data splits inside the Studio")
     p.set_defaults(func=cmd_data)

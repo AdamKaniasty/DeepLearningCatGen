@@ -66,6 +66,7 @@ Repo must be reachable via git (default: `origin` remote).
 ```bash
 python scripts/lightning_submit.py whoami         # auth + teamspace check
 python scripts/lightning_submit.py setup          # create Studio, clone repo, install deps
+python scripts/lightning_submit.py sync           # after subsequent local commits: git pull + reinstall on Studio
 # (one-time, inside Studio UI: upload Cat Dataset to data/raw/cats and Dogs vs Cats to data/raw/dogs)
 python scripts/lightning_submit.py data           # prepare splits on Studio
 python scripts/lightning_submit.py submit dcgan   # 8 jobs (one per config)
