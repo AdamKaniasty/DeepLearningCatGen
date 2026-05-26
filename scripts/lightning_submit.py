@@ -140,7 +140,7 @@ def cmd_smoke(args):
             print(f"switching studio to {target}")
             s.switch_machine(m)
     print(f"studio machine: {s.machine}")
-    device = "cuda" if not str(s.machine).startswith("Machine.CPU") else "cpu"
+    device = "cpu" if "CPU" in str(s.machine).upper() else "cuda"
     print("syncing repo...")
     s.run(f"cd {remote_cwd()} && git pull && pip install -e . > /dev/null")
     print("preparing fake data (60 cats, 30 train, 10 ref)...")
