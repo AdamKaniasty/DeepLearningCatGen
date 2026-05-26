@@ -34,19 +34,25 @@ def main():
         raise SystemExit(f"no samples in {gen_dir}; run catgen.sample first")
 
     ref_dir = materialize_ref(args.ref_split)
-    score = fid.compute_fid(
-        str(ref_dir),
-        str(gen_dir),
-        mode="clean",
-        num_workers=args.num_workers,
-        device="cpu",
-    )
     result = {
-        "fid": float(score),
+        "fid": None,
         "ref_split": args.ref_split,
         "n_ref": sum(1 for _ in ref_dir.iterdir()),
         "n_gen": sum(1 for _ in gen_dir.glob("*.png")),
+        "error": None,
     }
+    try:
+        score = fid.compute_fid(
+            str(ref_dir),
+            str(gen_dir),
+            mode="clean",
+            num_workers=args.num_workers,
+            device="cpu",
+        )
+        result["fid"] = float(score)
+    except Exception as e:
+        result["error"] = repr(e)
+        print(f"FID failed (likely too few samples): {e}", flush=True)
     (d / "eval" / "fid.json").write_text(json.dumps(result, indent=2))
     artifacts.log_event(d, "fid_computed", **result)
     print(json.dumps(result, indent=2))

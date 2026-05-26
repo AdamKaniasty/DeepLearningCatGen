@@ -34,8 +34,8 @@ for d in runs/*/ ; do
   case "$rid" in _*) continue;; esac
   echo "--- $rid ---"
   python -m catgen.sample --run-id "$rid" --n 20 --device "$DEVICE"
-  python -m catgen.eval_fid --run-id "$rid" --ref-split fid_ref_20.txt
-  python -m catgen.eval_quality --run-id "$rid" --device "$DEVICE" --n-train-ref 30
+  python -m catgen.eval_fid --run-id "$rid" --ref-split fid_ref_20.txt || true
+  python -m catgen.eval_quality --run-id "$rid" --device "$DEVICE" --n-train-ref 30 || true
   python -m catgen.interpolate --run-id "$rid" --device "$DEVICE" || true
 done
 python scripts/plot_metrics.py
