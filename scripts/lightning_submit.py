@@ -130,12 +130,17 @@ def cmd_machine(args):
 
 def cmd_smoke(args):
     s = studio()
-    m = machine_for(args.machine)
     s.start()
-    if str(s.machine) != f"Machine.{args.machine}":
-        print(f"switching studio to {args.machine}")
-        s.switch_machine(m)
+    target = args.machine
+    if target.lower() == "current":
+        target = str(s.machine).split(".")[-1]
+    else:
+        m = machine_for(target)
+        if str(s.machine) != f"Machine.{target}":
+            print(f"switching studio to {target}")
+            s.switch_machine(m)
     print(f"studio machine: {s.machine}")
+    device = "cuda" if not str(s.machine).startswith("Machine.CPU") else "cpu"
     print("syncing repo...")
     s.run(f"cd {remote_cwd()} && git pull && pip install -e . > /dev/null")
     print("preparing fake data (60 cats, 30 train, 10 ref)...")
@@ -143,10 +148,10 @@ def cmd_smoke(args):
         f"cd {remote_cwd()} && rm -rf data/raw data/splits && "
         f"python scripts/prepare_data.py --fake 60 --train-n 30 --ref-n 10 --no-mixed"
     )
-    print("training DCGAN smoke (2 epochs, cuda)...")
+    print(f"training DCGAN smoke (2 epochs, {device})...")
     print(s.run(
         f"cd {remote_cwd()} && python -m catgen.train --config src/catgen/configs/dcgan_smoke.yaml "
-        f"--device cuda --max-epochs 2 --set data.split=train_30.txt --set data.batch_size=4 --set data.num_workers=0"
+        f"--device {device} --max-epochs 2 --set data.split=train_30.txt --set data.batch_size=4 --set data.num_workers=0"
     ))
     print("--- run artifacts ---")
     print(s.run(f"cd {remote_cwd()} && ls runs/ && tail -5 runs/*/metrics.csv && cat runs/*/events.jsonl"))
