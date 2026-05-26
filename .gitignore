@@ -3,8 +3,12 @@ __pycache__/
 *.pyc
 .DS_Store
 data/raw/
+data/splits/
 runs/
+reports/
+presentation/figures/
 *.ckpt
 *.egg-info/
 build/
 dist/
+.env

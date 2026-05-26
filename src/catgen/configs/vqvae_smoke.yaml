@@ -1,0 +1,16 @@
+model: vqvae
+seed: 42
+max_epochs: 1
+
+data:
+  split: train_30.txt
+  image_size: 64
+  batch_size: 8
+  num_workers: 0
+  augment: true
+
+model_args:
+  num_embeddings: 128
+  embedding_dim: 64
+  hidden: 64
+  lr: 2.0e-4

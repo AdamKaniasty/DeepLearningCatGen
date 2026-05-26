@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+*.egg-info/
+build/
+dist/
+.env
+
+data/raw/
+data/splits/.*.imgs/
+
+*.ckpt
+runs/_smoke/
+runs/*/eval/samples/

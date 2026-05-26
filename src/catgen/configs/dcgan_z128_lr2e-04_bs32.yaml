@@ -1,0 +1,16 @@
+model: dcgan
+seed: 42
+max_epochs: 30
+save_every: 5
+data:
+  split: train_3000.txt
+  image_size: 64
+  batch_size: 32
+  num_workers: 4
+  augment: true
+model_args:
+  z_dim: 128
+  ch: 64
+  lr: 0.0002
+  beta1: 0.5
+  n_sample: 64

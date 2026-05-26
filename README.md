@@ -39,7 +39,7 @@ reports/               # cross-run rollups
 scripts/               # data prep + orchestration shells
 ```
 
-## Usage
+## Usage (local)
 
 ```bash
 python -m catgen.train --config src/catgen/configs/dcgan_a.yaml --device auto
@@ -47,3 +47,33 @@ python -m catgen.sample --run-id <run_id> --n 1000
 python -m catgen.eval_fid --run-id <run_id>
 python -m catgen.leaderboard
 ```
+
+## Lightning AI cluster
+
+Requires in `.env`:
+
+```
+LIGHTNING_USER_ID=<uuid>
+LIGHTNING_API_KEY=<uuid>
+# optional overrides (auto-detected when single value exists):
+# LIGHTNING_TEAMSPACE=deploy-model-project
+# LIGHTNING_STUDIO_NAME=catgen
+# LIGHTNING_MACHINE=T4
+```
+
+Repo must be reachable via git (default: `origin` remote).
+
+```bash
+python scripts/lightning_submit.py whoami         # auth + teamspace check
+python scripts/lightning_submit.py setup          # create Studio, clone repo, install deps
+# (one-time, inside Studio UI: upload Cat Dataset to data/raw/cats and Dogs vs Cats to data/raw/dogs)
+python scripts/lightning_submit.py data           # prepare splits on Studio
+python scripts/lightning_submit.py submit dcgan   # 8 jobs (one per config)
+python scripts/lightning_submit.py submit aae     # 4 jobs
+python scripts/lightning_submit.py submit vqvae   # 8 jobs
+python scripts/lightning_submit.py eval           # eval + figures + report on Studio
+python scripts/lightning_submit.py push -m "sweep complete"
+git pull origin main                              # pull runs/ + reports/ back locally
+```
+
+Dry-run any submit/eval with `--dry-run` to see the planned commands without spending credits.
