@@ -99,7 +99,7 @@ def cmd_setup(args):
     url = git_repo_url()
     print(f"cloning repo into studio: {url}")
     s.run(f"test -d {repo_dirname()} || git clone {url}")
-    s.run(f"cd {remote_cwd()} && python -m venv .venv && . .venv/bin/activate && pip install -U pip && pip install -e .")
+    s.run(f"cd {remote_cwd()} && pip install -U pip && pip install -e .")
     print("swapping .gitignore -> .cluster.gitignore so runs/ + reports/ are pushable")
     s.run(
         f"cd {remote_cwd()} && cp .cluster.gitignore .gitignore && "
@@ -115,7 +115,7 @@ def cmd_setup(args):
 def cmd_data(args):
     s = studio()
     s.start()
-    s.run(f"cd {remote_cwd()} && . .venv/bin/activate && python scripts/prepare_data.py")
+    s.run(f"cd {remote_cwd()} && python scripts/prepare_data.py")
     print("splits ready on studio.")
 
 
@@ -135,7 +135,7 @@ def cmd_submit(args):
         rel = cfg.relative_to(ROOT)
         job_name = cfg.stem
         cmd = (
-            f"cd {remote_cwd()} && . .venv/bin/activate && "
+            f"cd {remote_cwd()} && "
             f"python -m catgen.train --config {rel} --device cuda"
         )
         print(f"  {job_name}")
@@ -146,7 +146,7 @@ def cmd_submit(args):
 
 def cmd_eval(args):
     cmd = (
-        f"cd {remote_cwd()} && . .venv/bin/activate && "
+        f"cd {remote_cwd()} && "
         f"bash scripts/run_eval.sh {args.n} {args.ref} cuda && "
         f"python scripts/plot_metrics.py && "
         f"python scripts/build_figures.py && "
