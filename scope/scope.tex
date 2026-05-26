@@ -1,0 +1,207 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, booktabs, graphicx, hyperref, authblk, tabularx}
+
+\title{Generative Image Modelling on Cat Images \\ \large Project III --- Generative Models}
+\author{Mateusz Iwaniuk \quad Adam Kaniasty}
+\date{May 16, 2026}
+
+\begin{document}
+\maketitle
+
+\section{Project Overview}
+In this project, we investigate how different lightweight generative modelling approaches perform on the task of generating cat images. We compare three models: a GAN trained from scratch, an adversarial autoencoder, and a VQ-VAE.
+
+Our experimental pipeline is organized into four phases. First, we prepare a fixed subset of the required Cat Dataset and train a GAN baseline from scratch. Then, we train an adversarial autoencoder and a VQ-VAE on the same data. Finally, we compare the generated images quantitatively using Fr\'echet Inception Distance and qualitatively through visual inspection and latent-space interpolation.
+
+Our main priority is to ensure a fair comparison between the selected generative approaches rather than achieving the highest possible image quality. Since training generative models can be computationally expensive, we will train and evaluate the models on fixed subsets of the required datasets.
+
+\section{Dataset and Models}
+We will use the \textbf{Cat Dataset} from Kaggle, which contains 9,993 cat images with different resolutions and visual conditions. Since the images have different sizes, we will preprocess them to a fixed resolution before training.
+
+For the main experiments, we will use:
+\begin{table}[h]
+\centering
+\caption{Dataset splits for main experiments.}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Split / purpose} & \textbf{Size} \\ \midrule
+Training subset & 3,000 cat images \\
+FID real reference set & 1,000 separate cat images \\
+Generated samples for FID & 1,000 images per model \\
+Unused / reserve images & 5,993 cat images \\ \bottomrule
+\end{tabular}
+\end{table}
+
+The training subset and FID reference subset will be fixed across experiments to keep the comparison consistent.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Model architectures used in our experiments.}
+\begin{tabularx}{\textwidth}{@{}lXlp{2.1cm}@{}}
+\toprule
+\textbf{Model} & \textbf{Type} & \textbf{Size} & \textbf{Purpose} \\ \midrule
+DCGAN-64 & GAN & $\sim$3--5M & Baseline comparison \\
+Conv-AAE-64 & Adversarial autoencoder & $\sim$2--6M & Latent-space generation \\
+VQ-VAE-64 & Vector-quantized VAE & $\sim$5--15M & Discrete-latent generation \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\noindent All three models are trained from scratch on the cat subset; Conv-AAE-64 may alternatively be fine-tuned if a suitable pretrained checkpoint is available.
+
+For all three models, we will primarily use images resized to $64\times64$ pixels. If training becomes too slow, we will reduce the resolution to $32\times32$ pixels. This keeps the comparison computationally feasible and ensures that all models are trained under similar conditions.
+
+\section{Experiments}
+
+\subsection{Phase 1: GAN Baseline from Scratch}
+We will train DCGAN-64 from scratch on the 3,000-image cat subset. The model will consist of a convolutional generator and a convolutional discriminator.
+
+We will investigate a small set of training settings:
+\begin{table}[h]
+\centering
+\caption{GAN hyperparameter search space.}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Hyperparameter} & \textbf{Planned values / options} \\ \midrule
+Latent vector size & 64, 128 \\
+Learning rate & 0.0002, 0.0001 \\
+Batch size & 32, 64 \\
+Image resolution & $64\times64$, fallback $32\times32$ \\ \bottomrule
+\end{tabular}
+\end{table}
+
+We will monitor generator loss, discriminator loss, generated samples, diversity, and signs of mode collapse. If mode collapse occurs, we will try practical stabilization techniques such as lowering the learning rate, applying label smoothing, adjusting the discriminator-generator balance, or selecting an earlier checkpoint.
+
+\subsection{Phase 2: Adversarial Autoencoder}
+We will train or fine-tune Conv-AAE-64 on the same 3,000-image cat subset.
+
+The AAE will consist of:
+\begin{itemize}
+    \item convolutional encoder,
+    \item continuous latent space,
+    \item convolutional decoder,
+    \item latent discriminator.
+\end{itemize}
+
+The AAE allows us to compare the GAN with a latent-space generative model. It is also useful for interpolation, because generated images can be directly linked to latent vectors.
+
+\begin{table}[h]
+\centering
+\caption{AAE hyperparameter search space.}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Hyperparameter} & \textbf{Planned values / options} \\ \midrule
+Latent dimension & 64, 128 \\
+Learning rate & $10^{-4}$, $10^{-5}$ \\
+Batch size & 32, 64 if possible \\
+Image resolution & $64\times64$, fallback $32\times32$ \\ \bottomrule
+\end{tabular}
+\end{table}
+
+We will evaluate reconstruction quality, generated samples, latent-space smoothness, and FID.
+
+\subsection{Phase 3: VQ-VAE}
+We will train VQ-VAE-64 on the same 3,000-image cat subset.
+
+VQ-VAE is an extension of the variational autoencoder that uses a discrete latent codebook instead of a continuous latent distribution. This gives us a third lightweight generative approach without introducing the computational cost of diffusion models.
+
+The model will consist of:
+\begin{itemize}
+    \item convolutional encoder,
+    \item vector-quantized latent codebook,
+    \item convolutional decoder.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\caption{VQ-VAE hyperparameter search space.}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Hyperparameter} & \textbf{Planned values / options} \\ \midrule
+Codebook size & 128, 512 \\
+Embedding dimension & 64, 128 \\
+Learning rate & $10^{-4}$, $2\times10^{-4}$ \\
+Batch size & 32, 64 \\
+Image resolution & $64\times64$, fallback $32\times32$ \\ \bottomrule
+\end{tabular}
+\end{table}
+
+For VQ-VAE generation, we will decode sampled latent codes based on the empirical distribution of codes observed in the training subset. If time allows, we may train a small prior over the discrete latent space, but this will not be required for the main comparison.
+
+\subsection{Phase 4: Evaluation and Latent Interpolation}
+We will evaluate all models quantitatively and qualitatively.
+
+For quantitative evaluation, we will compute Fr\'echet Inception Distance between:
+\begin{enumerate}
+    \item 1,000 real images from the fixed FID reference subset;
+    \item 1,000 generated images from each model.
+\end{enumerate}
+
+\begin{table}[h]
+\centering
+\caption{Planned quantitative comparison.}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Model} & \textbf{Training data} & \textbf{Generated samples} & \textbf{Metric} \\ \midrule
+DCGAN-64 & 3,000 cats & 1,000 & FID \\
+Conv-AAE-64 & 3,000 cats & 1,000 & FID \\
+VQ-VAE-64 & 3,000 cats & 1,000 & FID \\ \bottomrule
+\end{tabular}
+\end{table}
+
+For qualitative evaluation, we will compare generated image grids and discuss:
+\begin{itemize}
+    \item cat-like appearance;
+    \item sharpness;
+    \item diversity;
+    \item artifacts;
+    \item mode collapse;
+    \item blurry outputs;
+    \item training stability.
+\end{itemize}
+
+We will also perform latent interpolation. We will select two generated images together with their latent vectors and linearly interpolate between them to generate 8 additional images. This will produce 10 images in total: 2 endpoint images and 8 interpolated images.
+
+The interpolation experiment will primarily use the GAN or AAE, because these models have the clearest latent representation.
+
+\section{Cats-and-Dogs Extension}
+As an exploratory extension, we will train or adapt one selected model on the Dogs vs.\ Cats dataset from the project requirements.
+
+We will use a balanced subset:
+\begin{table}[h]
+\centering
+\caption{Dataset splits for cats-and-dogs extension.}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Split / purpose} & \textbf{Size} \\ \midrule
+Mixed training subset & 1,000 cats + 1,000 dogs \\
+Optional reference set & 500 cats + 500 dogs \\
+Generated samples & 1,000 images \\ \bottomrule
+\end{tabular}
+\end{table}
+
+The goal is to compare the cat-only model with a model trained on both cats and dogs. We will assess whether the generated observations resemble cats and dogs as separate concepts or become ambiguous mixtures.
+
+Since class-distinct generation can be difficult without conditioning, this part will be treated as exploratory and will not receive disproportionate training time.
+
+\section{Division of Work}
+\begin{table}[h]
+\centering
+\small
+\caption{General division of responsibilities.}
+\begin{tabularx}{\textwidth}{@{}lXX@{}}
+\toprule
+\textbf{Area} & \textbf{Mateusz Iwaniuk} & \textbf{Adam Kaniasty} \\ \midrule
+Project setup & Dataset download, preprocessing, environment & Experiment structure, logging, reproducibility \\
+Phase 1 & GAN architecture and training setup & GAN hyperparameter variants and mode collapse analysis \\
+Phase 2 & AAE implementation and training & AAE generation and latent-space analysis \\
+Phase 3 & VQ-VAE implementation and training & VQ-VAE sampling and codebook analysis \\
+Phase 4 & Qualitative comparison and visualizations & FID computation and quantitative analysis \\
+Extension & Cats-and-dogs dataset preparation & Mixed-dataset training and comparison \\
+Analysis & Interpretation of generated samples & Metrics, plots, and final discussion \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\end{document}
