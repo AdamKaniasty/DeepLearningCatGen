@@ -119,6 +119,39 @@ def cmd_sync(args):
     print("studio synced with latest repo + reinstalled.")
 
 
+def cmd_machine(args):
+    s = studio()
+    m = machine_for(args.machine)
+    print(f"switching studio to {args.machine}")
+    s.start()
+    s.switch_machine(m)
+    print(f"studio machine: {s.machine}")
+
+
+def cmd_smoke(args):
+    s = studio()
+    m = machine_for(args.machine)
+    s.start()
+    if str(s.machine) != f"Machine.{args.machine}":
+        print(f"switching studio to {args.machine}")
+        s.switch_machine(m)
+    print(f"studio machine: {s.machine}")
+    print("syncing repo...")
+    s.run(f"cd {remote_cwd()} && git pull && pip install -e . > /dev/null")
+    print("preparing fake data (60 cats, 30 train, 10 ref)...")
+    s.run(
+        f"cd {remote_cwd()} && rm -rf data/raw data/splits && "
+        f"python scripts/prepare_data.py --fake 60 --train-n 30 --ref-n 10 --no-mixed"
+    )
+    print("training DCGAN smoke (2 epochs, cuda)...")
+    print(s.run(
+        f"cd {remote_cwd()} && python -m catgen.train --config src/catgen/configs/dcgan_smoke.yaml "
+        f"--device cuda --max-epochs 2 --set data.split=train_30.txt --set data.batch_size=4 --set data.num_workers=0"
+    ))
+    print("--- run artifacts ---")
+    print(s.run(f"cd {remote_cwd()} && ls runs/ && tail -5 runs/*/metrics.csv && cat runs/*/events.jsonl"))
+
+
 def cmd_data(args):
     s = studio()
     s.start()
@@ -194,6 +227,14 @@ def main():
 
     p = sub.add_parser("sync", help="git pull + reinstall on Studio after local code changes")
     p.set_defaults(func=cmd_sync)
+
+    p = sub.add_parser("machine", help="switch the Studio's machine type")
+    p.add_argument("machine")
+    p.set_defaults(func=cmd_machine)
+
+    p = sub.add_parser("smoke", help="end-to-end smoke on the Studio (fake data, 2 epoch DCGAN on cuda)")
+    p.add_argument("--machine", default=os.environ.get("LIGHTNING_MACHINE", "T4"))
+    p.set_defaults(func=cmd_smoke)
 
     p = sub.add_parser("data", help="prepare data splits inside the Studio")
     p.set_defaults(func=cmd_data)
