@@ -81,17 +81,19 @@ Dry-run any submit/eval with `--dry-run` to see the planned commands without spe
 
 ## SLURM (eden)
 
+Same pattern as Mi-Crow: **no login-node pip**. Each job runs `uv sync` on the compute node (cache in `.uv-cache/` on evafs).
+
 ```bash
 ssh eden
-cd /mnt/evafs/groups/mi2lab/akaniasty
-git clone https://github.com/AdamKaniasty/DeepLearningCatGen.git   # once
-cd DeepLearningCatGen && bash scripts/slurm/setup_eden.sh
+cd /mnt/evafs/groups/mi2lab/akaniasty/DeepLearningCatGen
+git pull
+bash scripts/slurm/setup_eden.sh          # clone/pull + data symlink only
 
-sbatch scripts/slurm/catgen_sweep.sbatch    # full sweep (20 configs + eval)
-sbatch scripts/slurm/catgen_smoke.sbatch    # quick GPU smoke (fake data)
+sbatch scripts/slurm/catgen_sweep.sbatch  # full sweep (uv sync + train + eval)
+sbatch scripts/slurm/catgen_smoke.sbatch  # quick GPU smoke (fake data)
 
 squeue -u $USER
-tail -f slurm_logs/sweep-<jobid>.out
+tail -f slurm-logs/sweep-<jobid>.out
 ```
 
 Cats data defaults to `/mnt/evafs/faculty/home/kbokhan/data/cats` (symlinked by `scripts/slurm/link_data.sh`). Override with `CATGEN_DATA_CATS`.

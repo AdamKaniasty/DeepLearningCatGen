@@ -9,12 +9,7 @@ if [ ! -d "$REPO" ]; then
 fi
 cd "$REPO"
 git pull --ff-only
-python3 -m venv .venv
-# shellcheck disable=SC1091
-source .venv/bin/activate
-pip install -U pip wheel
-pip install -e .
-mkdir -p slurm_logs reports presentation/figures
+mkdir -p slurm-logs "$BASE/tmp"
 export CATGEN_ROOT="$PWD"
 bash scripts/slurm/link_data.sh
-echo "setup done: $PWD"
+echo "setup done (deps install on first sbatch via uv sync): $PWD"

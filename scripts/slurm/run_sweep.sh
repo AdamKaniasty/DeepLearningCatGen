@@ -2,8 +2,6 @@
 set -euo pipefail
 ROOT="${CATGEN_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
 cd "$ROOT"
-# shellcheck disable=SC1091
-source .venv/bin/activate
 export SSL_CERT_FILE="${SSL_CERT_FILE:-$(python -m certifi)}"
 export REQUESTS_CA_BUNDLE="${REQUESTS_CA_BUNDLE:-$SSL_CERT_FILE}"
 

@@ -1,4 +1,7 @@
 .venv/
+.uv-cache/
+.uv-bin/
+slurm-logs/
 __pycache__/
 *.pyc
 .DS_Store
