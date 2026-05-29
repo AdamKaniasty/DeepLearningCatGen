@@ -89,8 +89,10 @@ cd /mnt/evafs/groups/mi2lab/akaniasty/DeepLearningCatGen
 git pull
 bash scripts/slurm/setup_eden.sh          # clone/pull + data symlink only
 
-sbatch scripts/slurm/catgen_sweep.sbatch  # full sweep (uv sync + train + eval)
-sbatch scripts/slurm/catgen_smoke.sbatch  # quick GPU smoke (fake data)
+sbatch scripts/slurm/catgen_sweep.sbatch        # A100 on dgx-4 only (mi2lab), 8 CPU / 64G
+sbatch scripts/slurm/catgen_sweep_lite.sbatch    # same GPU pool, 4 CPU / 32G (cheaper, same wait)
+sbatch scripts/slurm/catgen_sweep_tesla.sbatch   # Tesla on pascal (experimental), usually starts fast
+sbatch scripts/slurm/catgen_smoke.sbatch         # quick GPU smoke (fake data)
 
 squeue -u $USER
 tail -f slurm-logs/sweep-<jobid>.out
