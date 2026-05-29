@@ -5,10 +5,15 @@ cd "$ROOT"
 export SSL_CERT_FILE="${SSL_CERT_FILE:-$(python -m certifi)}"
 export REQUESTS_CA_BUNDLE="${REQUESTS_CA_BUNDLE:-$SSL_CERT_FILE}"
 
-bash scripts/slurm/link_data.sh
+if [ "${CATGEN_SMOKE:-0}" = "1" ]; then
+  rm -f data/raw/cats
+  mkdir -p data/raw/cats
+  python scripts/prepare_data.py --fake 200 --train-n 120 --ref-n 40 --no-mixed
+else
+  bash scripts/slurm/link_data.sh
+fi
 
 if [ "${CATGEN_SMOKE:-0}" = "1" ]; then
-  python scripts/prepare_data.py --fake 200 --train-n 120 --ref-n 40 --no-mixed
   DEVICE="${CATGEN_DEVICE:-cuda}"
   OVR="--max-epochs 2 --limit-batches 8 --device $DEVICE --set data.split=train_120.txt --set data.batch_size=16 --set data.num_workers=4"
   python -m catgen.train --config src/catgen/configs/dcgan_smoke.yaml $OVR

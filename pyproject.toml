@@ -8,8 +8,8 @@ version = "0.0.1"
 description = "Lightweight generative models on Cat Dataset (DL Project III)"
 requires-python = ">=3.10"
 dependencies = [
-    "torch",
-    "torchvision",
+    "torch>=2.5,<2.6",
+    "torchvision>=0.20,<0.21",
     "lightning",
     "pillow",
     "pyyaml",
@@ -21,3 +21,12 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu124" }
+torchvision = { index = "pytorch-cu124" }
