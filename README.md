@@ -78,3 +78,20 @@ git pull origin main                              # pull runs/ + reports/ back l
 ```
 
 Dry-run any submit/eval with `--dry-run` to see the planned commands without spending credits.
+
+## SLURM (eden)
+
+```bash
+ssh eden
+cd /mnt/evafs/groups/mi2lab/akaniasty
+git clone https://github.com/AdamKaniasty/DeepLearningCatGen.git   # once
+cd DeepLearningCatGen && bash scripts/slurm/setup_eden.sh
+
+sbatch scripts/slurm/catgen_sweep.sbatch    # full sweep (20 configs + eval)
+sbatch scripts/slurm/catgen_smoke.sbatch    # quick GPU smoke (fake data)
+
+squeue -u $USER
+tail -f slurm_logs/sweep-<jobid>.out
+```
+
+Cats data defaults to `/mnt/evafs/faculty/home/kbokhan/data/cats` (symlinked by `scripts/slurm/link_data.sh`). Override with `CATGEN_DATA_CATS`.
