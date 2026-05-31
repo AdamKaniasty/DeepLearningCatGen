@@ -8,4 +8,5 @@ for cfg in src/catgen/configs/${MODEL}_*.yaml; do
   case "$cfg" in *_smoke.yaml) continue;; esac
   echo "=== $cfg ==="
   python -m catgen.train --config "$cfg" --device "$DEVICE"
+  python -c "from catgen.cuda_util import clear_cuda_cache; clear_cuda_cache()"
 done

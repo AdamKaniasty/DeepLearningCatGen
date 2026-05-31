@@ -12,6 +12,8 @@ OUT.mkdir(parents=True, exist_ok=True)
 TRAIN_N = 1500
 REF_N = 500
 TRAIN_SPLIT = f"train_{TRAIN_N}.txt"
+MIXED_TRAIN_PER_CLASS = 400
+MIXED_REF_PER_CLASS = 200
 
 
 def emit(name: str, cfg: dict) -> None:
@@ -21,13 +23,13 @@ def emit(name: str, cfg: dict) -> None:
 def clear_sweep_configs() -> None:
     for prefix in ("dcgan_", "aae_", "vqvae_"):
         for p in OUT.glob(f"{prefix}*.yaml"):
-            if "smoke" not in p.name:
+            if "smoke" not in p.name and "ext_" not in p.name:
                 p.unlink()
 
 
-def base_data(bs: int = 32) -> dict:
+def base_data(bs: int = 32, split: str | None = None) -> dict:
     return {
-        "split": TRAIN_SPLIT,
+        "split": split or TRAIN_SPLIT,
         "image_size": 64,
         "batch_size": bs,
         "num_workers": 4,
@@ -71,12 +73,13 @@ def vqvae_grid(epochs: int = 40) -> list[tuple[str, dict]]:
     out = []
     for K, lr in [(128, 2e-4), (512, 2e-4), (512, 1e-4)]:
         D = 64
+        bs = 16 if K >= 512 else 32
         name = f"vqvae_K{K}_D{D}_lr{lr:.0e}"
         cfg = {
             "model": "vqvae",
             "seed": 42,
             "max_epochs": epochs,
-            "data": base_data(bs=32),
+            "data": base_data(bs=bs),
             "model_args": {"num_embeddings": K, "embedding_dim": D, "hidden": 128, "lr": lr},
             "early_stop": {"monitor": "recon", "patience": 8, "min_delta": 1.0e-4, "mode": "min"},
         }
@@ -84,12 +87,34 @@ def vqvae_grid(epochs: int = 40) -> list[tuple[str, dict]]:
     return out
 
 
+def extension_dcgan(epochs: int = 30) -> tuple[str, dict]:
+    """Cats+dogs extension: one DCGAN on balanced mixed split (scope: single selected model)."""
+    n = 2 * MIXED_TRAIN_PER_CLASS
+    name = "dcgan_ext_mixed_z128_lr2e-04_bs32"
+    cfg = {
+        "model": "dcgan",
+        "seed": 42,
+        "max_epochs": epochs,
+        "save_every": 5,
+        "data": base_data(bs=32, split=f"mixed_train_{n}.txt"),
+        "model_args": {"z_dim": 128, "ch": 64, "lr": 2e-4, "beta1": 0.5, "n_sample": 64},
+        "tags": ["extension", "mixed"],
+    }
+    return name, cfg
+
+
 def main():
     clear_sweep_configs()
     configs = dcgan_grid() + aae_grid() + vqvae_grid()
     for name, cfg in configs:
         emit(name, cfg)
-    print(f"wrote {len(configs)} configs to {OUT} (train={TRAIN_SPLIT}, fid_ref=fid_ref_{REF_N}.txt)")
+    ext_name, ext_cfg = extension_dcgan()
+    emit(ext_name, ext_cfg)
+    print(
+        f"wrote {len(configs) + 1} configs to {OUT} "
+        f"(train={TRAIN_SPLIT}, fid_ref=fid_ref_{REF_N}.txt, "
+        f"mixed_train={2 * MIXED_TRAIN_PER_CLASS}, mixed_ref={2 * MIXED_REF_PER_CLASS})"
+    )
 
 
 if __name__ == "__main__":

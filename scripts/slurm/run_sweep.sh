@@ -2,6 +2,8 @@
 set -euo pipefail
 ROOT="${CATGEN_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
 cd "$ROOT"
+# shellcheck source=sizes.env
+source scripts/slurm/sizes.env
 export SSL_CERT_FILE="${SSL_CERT_FILE:-$(python -m certifi)}"
 export REQUESTS_CA_BUNDLE="${REQUESTS_CA_BUNDLE:-$SSL_CERT_FILE}"
 
@@ -26,13 +28,13 @@ if [ "${CATGEN_SMOKE:-0}" = "1" ]; then
 fi
 
 python scripts/gen_configs.py
-python scripts/prepare_data.py --train-n 1500 --ref-n 500 --no-mixed
+python scripts/prepare_data.py --train-n "$CATGEN_TRAIN_N" --ref-n "$CATGEN_REF_N" --no-mixed
 
 DEVICE="${CATGEN_DEVICE:-cuda}"
 bash scripts/run_phase.sh dcgan "$DEVICE"
 bash scripts/run_phase.sh aae "$DEVICE"
 bash scripts/run_phase.sh vqvae "$DEVICE"
-bash scripts/run_eval.sh 500 fid_ref_500.txt "$DEVICE"
+bash scripts/run_eval.sh "$CATGEN_FID_N" "fid_ref_${CATGEN_REF_N}.txt" "$DEVICE"
 python scripts/plot_metrics.py
 python scripts/build_figures.py
 python scripts/build_report.py

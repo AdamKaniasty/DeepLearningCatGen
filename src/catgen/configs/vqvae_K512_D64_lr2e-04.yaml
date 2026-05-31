@@ -2,9 +2,9 @@ model: vqvae
 seed: 42
 max_epochs: 40
 data:
-  split: train_3000.txt
+  split: train_1500.txt
   image_size: 64
-  batch_size: 32
+  batch_size: 16
   num_workers: 4
   augment: true
 model_args:

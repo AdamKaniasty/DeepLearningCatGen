@@ -10,6 +10,7 @@ import yaml
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 
 from catgen import artifacts
+from catgen.cuda_util import clear_cuda_cache
 from catgen.data import CatDataModule, SPLITS
 
 MODELS = {}
@@ -53,6 +54,9 @@ def main():
     ap.add_argument("--max-epochs", type=int, default=None)
     ap.add_argument("--limit-batches", type=int, default=None, help="for smoke runs")
     ap.add_argument("--force", action="store_true", help="rerun even if manifest status=done")
+    ap.add_argument("--ckpt-path", type=Path, default=None, help="resume training from this checkpoint")
+    ap.add_argument("--resume", action="store_true", help="resume from runs/<id>/checkpoints/last.ckpt (or latest epoch_*.ckpt)")
+    ap.add_argument("--run-id", default=None, help="use this run dir (for resume with --set overrides that change the config hash)")
     ap.add_argument("--set", action="append", default=[], help="override config: e.g. data.split=train_30.txt")
     args = ap.parse_args()
 
@@ -76,13 +80,25 @@ def main():
     seed = int(cfg.get("seed", 42))
     L.seed_everything(seed, workers=True)
 
-    rid = artifacts.run_id(model_name, cfg, seed)
-    if artifacts.is_done(rid) and not args.force:
+    rid = args.run_id or artifacts.run_id(model_name, cfg, seed)
+    d = artifacts.run_dir(rid)
+
+    ckpt_path = args.ckpt_path
+    if args.resume:
+        if ckpt_path is None:
+            ckpt_path = artifacts.latest_checkpoint(d)
+        if ckpt_path is None:
+            raise SystemExit(f"[resume] no checkpoint in {d / 'checkpoints'}")
+        print(f"[resume] {rid} from {ckpt_path}")
+
+    if artifacts.is_done(rid) and not args.force and ckpt_path is None:
         print(f"[skip] {rid} already done")
         return
 
-    d = artifacts.run_dir(rid)
+    clear_cuda_cache()
     artifacts.write_manifest(d, model=model_name, config=cfg, seed=seed, dataset_hash=dataset_hash(cfg["data"]["split"]))
+    if ckpt_path is not None:
+        artifacts.log_event(d, "resume", ckpt=str(ckpt_path))
 
     dm = CatDataModule(**cfg["data"])
     lm = MODELS[model_name](**cfg.get("model_args", {}))
@@ -105,8 +121,13 @@ def main():
         ))
 
     save_every = int(cfg.get("save_every", 0))
-    enable_ckpt = save_every > 0
-    if enable_ckpt:
+    callbacks.append(ModelCheckpoint(
+        dirpath=str(d / "checkpoints"),
+        save_last=True,
+        every_n_epochs=1,
+        save_on_train_epoch_end=True,
+    ))
+    if save_every > 0:
         callbacks.append(ModelCheckpoint(
             dirpath=str(d / "checkpoints"),
             filename="epoch_{epoch:03d}",
@@ -121,7 +142,7 @@ def main():
         devices=1,
         max_epochs=cfg["max_epochs"],
         limit_train_batches=args.limit_batches or 1.0,
-        enable_checkpointing=enable_ckpt,
+        enable_checkpointing=True,
         enable_progress_bar=True,
         logger=False,
         deterministic=False,
@@ -129,10 +150,11 @@ def main():
     )
 
     try:
-        trainer.fit(lm, datamodule=dm)
+        trainer.fit(lm, datamodule=dm, ckpt_path=str(ckpt_path) if ckpt_path else None)
     except Exception as e:
         artifacts.log_event(d, "training_failed", error=repr(e))
         artifacts.mark_done(d, status="failed", error=repr(e))
+        clear_cuda_cache()
         raise
 
     for cb in callbacks:
@@ -163,6 +185,7 @@ def main():
         summary += ["", "## Last sample grid", f"![samples](samples/{last_grids[-1].name})"]
     artifacts.write_summary(d, "\n".join(summary) + "\n")
     artifacts.mark_done(d, n_params=n_params)
+    clear_cuda_cache()
     print(f"[done] {rid}")
 
 

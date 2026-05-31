@@ -93,9 +93,14 @@ sbatch scripts/slurm/catgen_sweep.sbatch        # A100 on dgx-4 only (mi2lab), 8
 sbatch scripts/slurm/catgen_sweep_lite.sbatch    # same GPU pool, 4 CPU / 32G (cheaper, same wait)
 sbatch scripts/slurm/catgen_sweep_tesla.sbatch   # Tesla on pascal (experimental), usually starts fast
 sbatch scripts/slurm/catgen_smoke.sbatch         # quick GPU smoke (fake data)
+sbatch scripts/slurm/catgen_resume_tesla.sbatch  # finish failed VQ-VAE + eval
+sbatch scripts/slurm/catgen_extension_tesla.sbatch  # cats+dogs DCGAN extension
+sbatch --dependency=afterok:<ext_jobid> scripts/slurm/catgen_finalize_tesla.sbatch  # PLAN.md figures + verify
 
 squeue -u $USER
 tail -f slurm-logs/sweep-<jobid>.out
 ```
 
-Cats data defaults to `/mnt/evafs/faculty/home/kbokhan/data/cats` (symlinked by `scripts/slurm/link_data.sh`). Override with `CATGEN_DATA_CATS`.
+Split sizes (smaller than scope.pdf) live in `scripts/slurm/sizes.env` (defaults: 1500/500 cats, extension 400+400 train / 200+200 ref per class).
+
+Cats data defaults to `/mnt/evafs/faculty/home/kbokhan/data/cats` (symlinked by `scripts/slurm/link_data.sh`). Dogs vs Cats: `CATGEN_DATA_DOGS` → `.../data/cats_dogs` (`dog.*.jpg` files).

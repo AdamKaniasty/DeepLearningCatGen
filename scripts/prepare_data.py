@@ -18,6 +18,16 @@ def scan_images(d: Path) -> list[Path]:
     return sorted(p for p in d.rglob("*") if p.suffix.lower() in IMG_EXT and p.is_file())
 
 
+def scan_dogs(d: Path) -> list[Path]:
+    """Kaggle Dogs vs Cats flat layout uses dog.N.jpg; else use all images under d."""
+    by_prefix = sorted(
+        p for p in d.glob("dog.*") if p.suffix.lower() in IMG_EXT and p.is_file()
+    )
+    if by_prefix:
+        return by_prefix
+    return scan_images(d)
+
+
 def hash_paths(paths: list[Path]) -> str:
     h = hashlib.sha1()
     for p in paths:
@@ -63,7 +73,7 @@ def build_cat_splits(seed: int, train_n: int, ref_n: int) -> dict:
 
 def build_mixed_splits(seed: int, per_class_train: int, per_class_ref: int) -> dict:
     cats = scan_images(RAW / "cats")
-    dogs = scan_images(RAW / "dogs")
+    dogs = scan_dogs(RAW / "dogs")
     need = per_class_train + per_class_ref
     if min(len(cats), len(dogs)) < need:
         raise SystemExit(f"need >= {need} per class, have cats={len(cats)} dogs={len(dogs)}")

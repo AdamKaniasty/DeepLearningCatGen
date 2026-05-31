@@ -90,6 +90,25 @@ def is_done(rid: str) -> bool:
         return False
 
 
+def run_status(rid: str) -> str | None:
+    p = RUNS / rid / "manifest.json"
+    if not p.exists():
+        return None
+    try:
+        return json.loads(p.read_text()).get("status")
+    except Exception:
+        return None
+
+
+def latest_checkpoint(run_dir: Path) -> Path | None:
+    ckpt_dir = run_dir / "checkpoints"
+    last = ckpt_dir / "last.ckpt"
+    if last.is_file():
+        return last
+    snaps = sorted(p for p in ckpt_dir.glob("*.ckpt") if p.name != "last.ckpt")
+    return snaps[-1] if snaps else None
+
+
 def _smoke() -> Path:
     d = run_dir("_smoke")
     write_manifest(d, model="smoke", config={"hello": "world"}, seed=0, dataset_hash="deadbeef")
