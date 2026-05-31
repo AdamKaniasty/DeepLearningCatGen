@@ -1,0 +1,23 @@
+model: dcgan
+seed: 42
+max_epochs: 80
+save_every: 5
+tags:
+- refine
+- extension
+- mixed
+data:
+  split: mixed_train_800.txt
+  image_size: 64
+  batch_size: 64
+  num_workers: 4
+  augment: true
+model_args:
+  z_dim: 128
+  ch: 64
+  lr: 0.0002
+  lr_d: 0.0002
+  beta1: 0.5
+  label_smooth: 0.1
+  generator: upsample_conv
+  n_sample: 64

@@ -6,8 +6,17 @@ cd "$ROOT"
 # shellcheck source=sizes.env
 source scripts/slurm/sizes.env
 
-MIN_CAT_RUNS="${CATGEN_MIN_CAT_RUNS:-10}"
-MIN_MIXED_RUNS="${CATGEN_MIN_MIXED_RUNS:-1}"
+PHASE="${PRESENTATION_PHASE:-sweep}"
+if [ "$PHASE" = "refine" ]; then
+  MIN_CAT_RUNS="${CATGEN_MIN_CAT_RUNS:-3}"
+  MIN_MIXED_RUNS="${CATGEN_MIN_MIXED_RUNS:-1}"
+  REFINE_ONLY=1
+else
+  MIN_CAT_RUNS="${CATGEN_MIN_CAT_RUNS:-10}"
+  MIN_MIXED_RUNS="${CATGEN_MIN_MIXED_RUNS:-1}"
+  REFINE_ONLY=0
+fi
+export REFINE_ONLY
 
 fail=0
 
@@ -25,7 +34,7 @@ require_file() {
 echo "=== global presentation artifacts ==="
 require_file data/splits/manifest.json || fail=$((fail + 1))
 if [ -f data/splits/manifest.json ]; then
-  python -c "
+  python3 -c "
 import json, sys
 m = json.load(open('data/splits/manifest.json'))
 if 'mixed' not in m:
@@ -34,10 +43,15 @@ if 'mixed' not in m:
 print('OK data/splits/manifest.json has mixed splits')
 " || fail=$((fail + 1))
 fi
+echo "=== check phase=$PHASE ==="
 require_file presentation/figures/dataset_preview.png || fail=$((fail + 1))
 require_file presentation/figures/fid_bar.png || fail=$((fail + 1))
 require_file presentation/figures/compare_grid.png || fail=$((fail + 1))
 require_file presentation/figures/ext_compare.png || fail=$((fail + 1))
+if [ "$PHASE" = "refine" ]; then
+  require_file presentation/figures/interp_dcgan.png || fail=$((fail + 1))
+  require_file presentation/figures/interp_aae.png || fail=$((fail + 1))
+fi
 require_file reports/leaderboard.md || fail=$((fail + 1))
 require_file reports/leaderboard.csv || fail=$((fail + 1))
 require_file reports/report_bundle.md || fail=$((fail + 1))
@@ -100,9 +114,10 @@ while read -r rid model is_mixed; do
   else
     fail=$((fail + 1))
   fi
-done < <(python -c "
-import json
+done < <(python3 -c "
+import json, os
 from pathlib import Path
+refine_only = os.environ.get('REFINE_ONLY', '0') == '1'
 for d in sorted(Path('runs').iterdir()):
     if not d.is_dir() or d.name.startswith('_'):
         continue
@@ -111,6 +126,12 @@ for d in sorted(Path('runs').iterdir()):
         continue
     m = json.loads(mp.read_text())
     if m.get('status') != 'done':
+        continue
+    tags = (m.get('config') or {}).get('tags', [])
+    is_refine = 'refine' in tags
+    if refine_only and not is_refine:
+        continue
+    if not refine_only and is_refine:
         continue
     split = (m.get('config') or {}).get('data', {}).get('split', '')
     mixed = 1 if 'mixed_train' in split else 0

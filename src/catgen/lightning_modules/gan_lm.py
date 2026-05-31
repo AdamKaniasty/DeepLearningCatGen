@@ -8,14 +8,25 @@ import torch.nn.functional as F
 from torchvision.utils import save_image
 
 from catgen import artifacts
-from catgen.models.dcgan import Discriminator, Generator
+from catgen.models.dcgan import Discriminator, Generator, GeneratorUpsample
 
 
 class GAN(L.LightningModule):
-    def __init__(self, z_dim=128, ch=64, lr=2e-4, beta1=0.5, label_smooth=0.0, n_sample=64):
+    def __init__(
+        self,
+        z_dim=128,
+        ch=64,
+        lr=2e-4,
+        lr_d=None,
+        beta1=0.5,
+        label_smooth=0.0,
+        generator="transpose",
+        n_sample=64,
+    ):
         super().__init__()
         self.save_hyperparameters()
-        self.G = Generator(z_dim=z_dim, ch=ch)
+        gen_cls = GeneratorUpsample if generator == "upsample_conv" else Generator
+        self.G = gen_cls(z_dim=z_dim, ch=ch)
         self.D = Discriminator(ch=ch)
         self.automatic_optimization = False
         self.register_buffer("fixed_z", torch.randn(n_sample, z_dim))
@@ -24,8 +35,9 @@ class GAN(L.LightningModule):
         self.run_dir: Path | None = None
 
     def configure_optimizers(self):
+        lr_d = self.hparams.lr_d if self.hparams.lr_d is not None else self.hparams.lr
         opt_g = torch.optim.Adam(self.G.parameters(), lr=self.hparams.lr, betas=(self.hparams.beta1, 0.999))
-        opt_d = torch.optim.Adam(self.D.parameters(), lr=self.hparams.lr, betas=(self.hparams.beta1, 0.999))
+        opt_d = torch.optim.Adam(self.D.parameters(), lr=lr_d, betas=(self.hparams.beta1, 0.999))
         return opt_g, opt_d
 
     def training_step(self, batch, batch_idx):
