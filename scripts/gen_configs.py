@@ -71,9 +71,10 @@ def aae_grid(epochs: int = 40) -> list[tuple[str, dict]]:
 
 def vqvae_grid(epochs: int = 40) -> list[tuple[str, dict]]:
     out = []
-    for K, lr in [(128, 2e-4), (512, 2e-4), (512, 1e-4)]:
+    # K=512 OOM on P100; use 128 + 256 (scope: 128, 512 -> 256 on cluster).
+    for K, lr in [(128, 2e-4), (256, 2e-4), (256, 1e-4)]:
         D = 64
-        bs = 16 if K >= 512 else 32
+        bs = 16 if K >= 256 else 32
         name = f"vqvae_K{K}_D{D}_lr{lr:.0e}"
         cfg = {
             "model": "vqvae",

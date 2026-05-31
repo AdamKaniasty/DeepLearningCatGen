@@ -4,7 +4,7 @@ Three sections matching the project: dataset, what we do, experiments. Each bull
 
 ## Cluster (eden) actual sizes
 
-Scope.pdf lists 3000/1000 cats and 1000+1000 mixed; the eden pipeline uses smaller splits from [`scripts/slurm/sizes.env`](../scripts/slurm/sizes.env) (defaults: **1500** train cats, **500** FID ref, **400+400** mixed train, **200+200** mixed ref, **500** FID samples per cat run). Use authoritative counts in **`data/splits/manifest.json`** on the cluster after `prepare_data.py`. Presentation figures are built by `scripts/slurm/run_finalize.sh` after resume + extension jobs.
+Scope.pdf lists 3000/1000 cats and 1000+1000 mixed; the eden pipeline uses smaller splits from [`scripts/slurm/sizes.env`](../scripts/slurm/sizes.env) (defaults: **1500** train cats, **500** FID ref, **400+400** mixed train, **200+200** mixed ref, **500** FID samples per cat run). Use authoritative counts in **`data/splits/manifest.json`** on the cluster after `prepare_data.py`. Presentation figures are built by `scripts/slurm/run_finalize.sh` after resume + extension jobs. VQ-VAE codebook sweep on P100: **K=128, 256** (K=512 dropped — OOM on 16GB GPUs).
 
 ## 1. Dataset
 
