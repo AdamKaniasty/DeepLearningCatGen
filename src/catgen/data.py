@@ -13,13 +13,19 @@ SPLITS = ROOT / "data" / "splits"
 
 
 class ImgDataset(Dataset):
-    def __init__(self, paths, image_size=64, augment=False):
+    def __init__(self, paths, image_size=64, augment=False, augment_crop=False):
         self.paths = list(paths)
         tfs = []
         if augment:
             tfs.append(transforms.RandomHorizontalFlip())
+        if augment_crop:
+            tfs += [
+                transforms.Resize(int(image_size * 1.14)),
+                transforms.RandomResizedCrop(image_size, scale=(0.85, 1.0), ratio=(0.9, 1.1)),
+            ]
+        else:
+            tfs.append(transforms.Resize((image_size, image_size)))
         tfs += [
-            transforms.Resize((image_size, image_size)),
             transforms.ToTensor(),
             transforms.Normalize([0.5] * 3, [0.5] * 3),
         ]
@@ -40,7 +46,15 @@ def read_split(name: str) -> list[Path]:
 
 
 class CatDataModule(L.LightningDataModule):
-    def __init__(self, split="train_3000.txt", image_size=64, batch_size=32, num_workers=2, augment=True):
+    def __init__(
+        self,
+        split="train_3000.txt",
+        image_size=64,
+        batch_size=32,
+        num_workers=2,
+        augment=True,
+        augment_crop=False,
+    ):
         super().__init__()
         self.save_hyperparameters()
 
@@ -49,6 +63,7 @@ class CatDataModule(L.LightningDataModule):
             read_split(self.hparams.split),
             image_size=self.hparams.image_size,
             augment=self.hparams.augment,
+            augment_crop=self.hparams.augment_crop,
         )
 
     def train_dataloader(self):

@@ -105,3 +105,4 @@ Scope.pdf lists 3000/1000 cats and 1000+1000 mixed; the eden pipeline uses small
 | `presentation/figures/interp_dcgan.png` | `scripts/build_figures.py` | refine phase |
 | `presentation/figures/interp_aae.png` | `scripts/build_figures.py` | refine phase |
 | Refine runs (×4: dcgan, aae, vqvae, dcgan_ext) | `scripts/slurm/run_refine.sh` | after phase 2 job |
+| DCGAN 128×128, 3000 cats | `scripts/slurm/run_dcgan128.sh` | optional quality pass |

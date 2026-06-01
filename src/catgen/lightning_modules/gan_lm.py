@@ -21,13 +21,14 @@ class GAN(L.LightningModule):
         beta1=0.5,
         label_smooth=0.0,
         generator="transpose",
+        image_size=64,
         n_sample=64,
     ):
         super().__init__()
         self.save_hyperparameters()
         gen_cls = GeneratorUpsample if generator == "upsample_conv" else Generator
-        self.G = gen_cls(z_dim=z_dim, ch=ch)
-        self.D = Discriminator(ch=ch)
+        self.G = gen_cls(z_dim=z_dim, ch=ch, image_size=image_size)
+        self.D = Discriminator(ch=ch, image_size=image_size)
         self.automatic_optimization = False
         self.register_buffer("fixed_z", torch.randn(n_sample, z_dim))
         self._d_losses = []
