@@ -2,14 +2,25 @@
 
 Three sections matching the project: dataset, what we do, experiments. Each bullet lists the artifact path that backs the slide.
 
-## Training protocol (two phases)
+## Training protocol (three parts for the story)
 
-We ran experiments in two stages on the same cat splits (see cluster sizes below).
+**Part A — Sweep + refine (64×64, did not reach good visual quality)**  
+Fair comparison of three lightweight models; limited by resolution and eden split sizes (1500 train / 500 ref).
 
-1. **Hyperparameter sweep (phase 1)** — Grid over DCGAN / AAE / VQ-VAE on cats-only data (~10 configs from `scripts/gen_configs.py`), plus one **cats+dogs extension** DCGAN (`dcgan_ext_mixed_*`, tag `extension`). Goal: pick best FID per family and baseline extension. Artifacts: all `runs/<rid>/` from sweep; figures built with `PRESENTATION_PHASE=sweep` (default) or before refinement completes.
-2. **Refinement (phase 2, Strategy B)** — Longer training (80 epochs) on winners’ settings with architecture/training fixes: DCGAN uses **upsample+conv** generator (`generator: upsample_conv`), label smoothing, separate G/D LRs; AAE/VQ-VAE at best sweep hyperparams with larger batch where possible; optional **refined mixed DCGAN** (`dcgan_ext_refine_*`, tags `refine`, `extension`). Configs: `scripts/gen_refine_configs.py` → `src/catgen/configs/*_refine_*.yaml`. Cluster: `scripts/slurm/run_refine.sh` then `run_refine_post.sh` (eval + figures). Presentation slides should use **refine-phase** figures when available (`PRESENTATION_PHASE=refine` in `build_figures.py` / `check_presentation_artifacts.sh`).
+1. **Sweep** — Grid over DCGAN / AAE / VQ-VAE (`scripts/gen_configs.py`), plus cats+dogs **DCGAN** extension. Figures: `presentation/figures/` with `PRESENTATION_PHASE=sweep` (default).
+2. **Refine** — 80-epoch rerun with DCGAN upsample-conv + training tweaks. Figures: same folder, `PRESENTATION_PHASE=refine`.
 
-Sweep and refine runs coexist under `runs/`; leaderboard includes both. Compare sweep vs refine FID in `reports/leaderboard.csv` (filter `tags` in manifest).
+Use Part A for methodology and “what we tried”; samples stay blobby at 64×64 (FID ~275–420).
+
+**Part B — High-res follow-up (128×128, 3000 cats, scope splits)**  
+Shows that **resolution + data** matter more than small 64×64 tweaks.
+
+- Train all three families at **128×128**, `train_3000.txt`, `RandomResizedCrop` aug (`scripts/slurm/run_phase128.sh`).
+- **Cats vs dogs** only for the **best** of the three by cats-only FID (mixed `mixed_train_800`, same as extension).
+- Figures: `presentation/figures/phase128/` via `PRESENTATION_PHASE=phase128` (`fid_bar.png`, `compare_grid.png`, `interp_dcgan.png`, `interp_aae.png`, `ext_compare.png`).
+- Example DCGAN run: `dcgan_e9574605_42` (FID ~233 at 128×128). Leaderboard summary: `reports/phase128_best.json`.
+
+**Slide order suggestion:** Dataset → Part A (sweep/refine table + weak 64×64 grids) → Part B (128×128 compare + samples + interpolation + extension for best model).
 
 ## Cluster (eden) actual sizes
 

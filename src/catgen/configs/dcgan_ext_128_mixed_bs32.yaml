@@ -4,15 +4,15 @@ max_epochs: 80
 save_every: 5
 tags:
 - phase128
-- dcgan128
-- cats3000
+- extension
+- mixed
 data:
-  split: train_3000.txt
   image_size: 128
-  batch_size: 32
   num_workers: 4
   augment: true
   augment_crop: true
+  split: mixed_train_800.txt
+  batch_size: 32
 model_args:
   z_dim: 128
   ch: 64

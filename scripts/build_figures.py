@@ -14,9 +14,11 @@ from torchvision.utils import save_image
 
 from catgen import artifacts
 
+PHASE = os.environ.get("PRESENTATION_PHASE", "sweep")  # sweep | refine | phase128
 FIG = artifacts.ROOT / "presentation" / "figures"
+if PHASE == "phase128":
+    FIG = FIG / "phase128"
 FAMILIES = ("dcgan", "aae", "vqvae")
-PHASE = os.environ.get("PRESENTATION_PHASE", "sweep")  # sweep | refine
 
 
 def _split_name(m: dict) -> str:
@@ -29,6 +31,15 @@ def is_mixed_run(m: dict) -> bool:
 
 def is_refine_run(m: dict) -> bool:
     return "refine" in (m.get("config") or {}).get("tags", [])
+
+
+def is_phase128_run(m: dict) -> bool:
+    tags = (m.get("config") or {}).get("tags", [])
+    if "phase128" in tags or "dcgan128" in tags:
+        return True
+    data = (m.get("config") or {}).get("data", {})
+    split = data.get("split", "")
+    return data.get("image_size") == 128 and "train_3000" in split
 
 
 def load_done_runs() -> list[dict]:
@@ -54,15 +65,18 @@ def load_done_runs() -> list[dict]:
             "ds_hash": m.get("dataset_hash"),
             "mixed": is_mixed_run(m),
             "refine": is_refine_run(m),
+            "phase128": is_phase128_run(m),
             "manifest": m,
         })
     return out
 
 
 def phase_runs(runs: list[dict]) -> list[dict]:
+    if PHASE == "phase128":
+        return [r for r in runs if r["phase128"]]
     if PHASE == "refine":
         return [r for r in runs if r["refine"]]
-    return [r for r in runs if not r["refine"]]
+    return [r for r in runs if not r["refine"] and not r["phase128"]]
 
 
 def cat_only_runs(runs: list[dict]) -> list[dict]:
@@ -94,6 +108,8 @@ def fig_fid_bar(runs: list[dict]) -> Path:
     title = "Best FID per model family"
     if PHASE == "refine":
         title += " (refinement phase)"
+    elif PHASE == "phase128":
+        title += " (128×128, 3000 cats)"
     ax.set_title(title)
     fig.tight_layout()
     out = FIG / "fid_bar.png"
@@ -140,6 +156,24 @@ def _best_dcgan(runs: list[dict], *, mixed: bool) -> dict | None:
     return min(with_fid or pool, key=lambda r: r["fid"] if r["fid"] is not None else 1e9)
 
 
+def _best_model_run(runs: list[dict], model: str, *, mixed: bool) -> dict | None:
+    pool = [r for r in runs if r["model"] == model and r["mixed"] == mixed]
+    if not pool:
+        return None
+    with_fid = [r for r in pool if r["fid"] is not None]
+    return min(with_fid or pool, key=lambda r: r["fid"] if r["fid"] is not None else 1e9)
+
+
+def _overall_best_cats_model(runs: list[dict]) -> str | None:
+    best_fid, best_model = 1e9, None
+    for r in cat_only_runs(runs):
+        if r["fid"] is None:
+            continue
+        if r["fid"] < best_fid:
+            best_fid, best_model = r["fid"], r["model"]
+    return best_model
+
+
 def _sample_panel(run: dict, n: int = 16, nrow: int = 4) -> torch.Tensor | None:
     """4x4 (or similar) grid from eval/samples for readable slides."""
     eval_dir = run["dir"] / "eval" / "samples"
@@ -168,9 +202,15 @@ def _sample_panel(run: dict, n: int = 16, nrow: int = 4) -> torch.Tensor | None:
 
 
 def fig_ext_compare(runs: list[dict]) -> Path | None:
-    """Cat-only best DCGAN vs mixed-trained DCGAN (scope extension comparison)."""
-    cat = _best_dcgan(runs, mixed=False)
-    mix = _best_dcgan(runs, mixed=True)
+    """Cats-only vs mixed for best model (DCGAN in sweep/refine; overall best in phase128)."""
+    if PHASE == "phase128":
+        model = _overall_best_cats_model(runs) or "dcgan"
+        cat = _best_model_run(runs, model, mixed=False)
+        mix = _best_model_run(runs, model, mixed=True)
+    else:
+        model = "dcgan"
+        cat = _best_dcgan(runs, mixed=False)
+        mix = _best_dcgan(runs, mixed=True)
     if cat is None or mix is None:
         return None
     cat_panel = _sample_panel(cat)
@@ -192,14 +232,19 @@ def fig_ext_compare(runs: list[dict]) -> Path | None:
     fig, axes = plt.subplots(1, 2, figsize=(10, 5.5))
     tf = transforms.ToPILImage()
     titles = [
-        f"Cats only (DCGAN)\n{_fid_label(cat)}",
-        f"Cats + dogs (DCGAN)\n{_fid_label(mix)}",
+        f"Cats only ({model.upper()})\n{_fid_label(cat)}",
+        f"Cats + dogs ({model.upper()})\n{_fid_label(mix)}",
     ]
     for ax, panel, title in zip(axes, [cat_panel, mix_panel], titles):
         ax.imshow(tf(panel))
         ax.set_title(title, fontsize=12)
         ax.axis("off")
-    phase_note = " (refined)" if PHASE == "refine" else ""
+    if PHASE == "phase128":
+        phase_note = " — 128×128, best of three families"
+    elif PHASE == "refine":
+        phase_note = " (refined)"
+    else:
+        phase_note = ""
     fig.suptitle(
         f"Extension: same architecture, different training data{phase_note}",
         fontsize=13,

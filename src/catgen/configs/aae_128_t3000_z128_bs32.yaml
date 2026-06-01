@@ -1,25 +1,23 @@
-model: dcgan
+model: aae
 seed: 42
 max_epochs: 80
-save_every: 5
 tags:
 - phase128
-- dcgan128
-- cats3000
 data:
-  split: train_3000.txt
   image_size: 128
-  batch_size: 32
   num_workers: 4
   augment: true
   augment_crop: true
+  split: train_3000.txt
+  batch_size: 32
 model_args:
   z_dim: 128
   ch: 64
   image_size: 128
   lr: 0.0001
-  lr_d: 0.0002
-  beta1: 0.5
-  label_smooth: 0.1
-  generator: upsample_conv
   n_sample: 64
+early_stop:
+  monitor: recon
+  patience: 10
+  min_delta: 0.0001
+  mode: min

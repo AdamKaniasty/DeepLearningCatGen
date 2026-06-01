@@ -12,11 +12,11 @@ from catgen.models.aae import Decoder, Encoder, LatentDiscriminator
 
 
 class AAE(L.LightningModule):
-    def __init__(self, z_dim=128, ch=64, lr=1e-4, recon_w=1.0, adv_w=1.0, n_sample=64):
+    def __init__(self, z_dim=128, ch=64, lr=1e-4, recon_w=1.0, adv_w=1.0, image_size=64, n_sample=64):
         super().__init__()
         self.save_hyperparameters()
-        self.enc = Encoder(z_dim=z_dim, ch=ch)
-        self.dec = Decoder(z_dim=z_dim, ch=ch)
+        self.enc = Encoder(z_dim=z_dim, ch=ch, image_size=image_size)
+        self.dec = Decoder(z_dim=z_dim, ch=ch, image_size=image_size)
         self.disc = LatentDiscriminator(z_dim=z_dim)
         self.automatic_optimization = False
         self.register_buffer("fixed_z", torch.randn(n_sample, z_dim))

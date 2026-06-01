@@ -13,10 +13,10 @@ from catgen.models.vqvae import VQVAE
 
 
 class VQ(L.LightningModule):
-    def __init__(self, num_embeddings=512, embedding_dim=64, hidden=128, lr=2e-4):
+    def __init__(self, num_embeddings=512, embedding_dim=64, hidden=128, lr=2e-4, image_size=64):
         super().__init__()
         self.save_hyperparameters()
-        self.net = VQVAE(num_embeddings, embedding_dim, hidden)
+        self.net = VQVAE(num_embeddings, embedding_dim, hidden, image_size=image_size)
         self._buf = {"recon": [], "commit": [], "perp": []}
         self._code_counts = torch.zeros(num_embeddings, dtype=torch.long)
         self.run_dir: Path | None = None

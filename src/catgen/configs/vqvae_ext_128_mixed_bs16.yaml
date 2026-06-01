@@ -1,0 +1,25 @@
+model: vqvae
+seed: 42
+max_epochs: 80
+tags:
+- phase128
+- extension
+- mixed
+data:
+  image_size: 128
+  num_workers: 4
+  augment: true
+  augment_crop: true
+  split: mixed_train_800.txt
+  batch_size: 16
+model_args:
+  num_embeddings: 128
+  embedding_dim: 64
+  hidden: 128
+  image_size: 128
+  lr: 0.0002
+early_stop:
+  monitor: recon
+  patience: 10
+  min_delta: 0.0001
+  mode: min
