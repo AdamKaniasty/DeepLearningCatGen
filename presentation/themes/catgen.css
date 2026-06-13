@@ -1,0 +1,115 @@
+/* @theme catgen */
+
+@import 'default';
+
+section {
+  font-size: 28px;
+  padding: 44px 56px 64px;
+  justify-content: flex-start;
+}
+
+h1 {
+  font-size: 1.65em;
+}
+
+h2 {
+  font-size: 1.2em;
+  margin: 0 0 0.4em;
+  color: #222;
+}
+
+ul {
+  margin: 0.3em 0;
+  line-height: 1.35;
+}
+
+li {
+  margin: 0.12em 0;
+}
+
+table {
+  font-size: 0.78em;
+  margin: 0.5em auto;
+}
+
+th,
+td {
+  padding: 0.35em 0.7em;
+}
+
+p.sub {
+  font-size: 0.88em;
+  color: #555;
+  margin: 0.2em 0 0.5em;
+}
+
+/* One wide figure (compare grids, extension) */
+section.figure {
+  padding-top: 40px;
+}
+
+section.figure h2 {
+  margin-bottom: 0.35em;
+}
+
+section.figure img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  max-height: 540px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Bullets + one chart or sample panel */
+section.content img {
+  display: block;
+  margin: 0.45em auto 0;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+section.content img.chart {
+  max-height: 320px;
+}
+
+section.content img.panel {
+  max-height: 360px;
+}
+
+section.content img.hero {
+  max-height: 460px;
+}
+
+/* Latent interpolation (wide horizontal strips → stack, scale by height) */
+section.pair h2 {
+  margin-bottom: 0.25em;
+}
+
+section.pair .interp {
+  margin: 0.35em 0 0.55em;
+  text-align: center;
+}
+
+section.pair .interp img {
+  display: block;
+  margin: 0 auto;
+  height: 200px;
+  width: auto;
+  max-width: 100%;
+}
+
+section.pair .interp p {
+  font-size: 0.8em;
+  color: #555;
+  margin: 0.3em 0 0;
+}
+
+.lead {
+  text-align: center;
+}
+
+.lead h1,
+.lead h2 {
+  margin: 0.25em 0;
+}

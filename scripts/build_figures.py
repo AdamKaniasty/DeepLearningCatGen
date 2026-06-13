@@ -14,10 +14,12 @@ from torchvision.utils import save_image
 
 from catgen import artifacts
 
-PHASE = os.environ.get("PRESENTATION_PHASE", "sweep")  # sweep | refine | phase128
+PHASE = os.environ.get("PRESENTATION_PHASE", "sweep")  # sweep | refine | phase128 | partc
 FIG = artifacts.ROOT / "presentation" / "figures"
 if PHASE == "phase128":
     FIG = FIG / "phase128"
+elif PHASE == "partc":
+    FIG = FIG / "partc"
 FAMILIES = ("dcgan", "aae", "vqvae")
 
 
@@ -33,8 +35,14 @@ def is_refine_run(m: dict) -> bool:
     return "refine" in (m.get("config") or {}).get("tags", [])
 
 
+def is_partc_run(m: dict) -> bool:
+    return "partc" in (m.get("config") or {}).get("tags", [])
+
+
 def is_phase128_run(m: dict) -> bool:
     tags = (m.get("config") or {}).get("tags", [])
+    if "partc" in tags:
+        return False
     if "phase128" in tags or "dcgan128" in tags:
         return True
     data = (m.get("config") or {}).get("data", {})
@@ -66,12 +74,15 @@ def load_done_runs() -> list[dict]:
             "mixed": is_mixed_run(m),
             "refine": is_refine_run(m),
             "phase128": is_phase128_run(m),
+            "partc": is_partc_run(m),
             "manifest": m,
         })
     return out
 
 
 def phase_runs(runs: list[dict]) -> list[dict]:
+    if PHASE == "partc":
+        return [r for r in runs if r["partc"]]
     if PHASE == "phase128":
         return [r for r in runs if r["phase128"]]
     if PHASE == "refine":
@@ -110,6 +121,8 @@ def fig_fid_bar(runs: list[dict]) -> Path:
         title += " (refinement phase)"
     elif PHASE == "phase128":
         title += " (128×128, 3000 cats)"
+    elif PHASE == "partc":
+        title += " (Part C DCGAN @128)"
     ax.set_title(title)
     fig.tight_layout()
     out = FIG / "fid_bar.png"
@@ -118,29 +131,54 @@ def fig_fid_bar(runs: list[dict]) -> Path:
     return out
 
 
+def _square_panel(t: torch.Tensor, side: int = 530) -> torch.Tensor:
+    """Resize any sample sheet to a fixed square (VQ-VAE uses wide strips)."""
+    import torch.nn.functional as F
+
+    _, h, w = t.shape
+    # VQ-VAE logs input+recon rows in one wide strip — keep reconstructions only
+    if w > h * 3 and h >= 2:
+        t = t[:, h // 2 :, :]
+        _, h, w = t.shape
+    scale = side / max(h, w)
+    nh, nw = max(1, int(h * scale)), max(1, int(w * scale))
+    t = F.interpolate(t.unsqueeze(0), size=(nh, nw), mode="bilinear", align_corners=False).squeeze(0)
+    _, h, w = t.shape
+    if h < side or w < side:
+        pad_h, pad_w = max(0, side - h), max(0, side - w)
+        t = F.pad(t, (pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2), value=1.0)
+    _, h, w = t.shape
+    y0, x0 = (h - side) // 2, (w - side) // 2
+    return t[:, y0 : y0 + side, x0 : x0 + side]
+
+
 def fig_compare_grid(runs: list[dict]) -> Path | None:
     best = best_per_family(cat_only_runs(runs))
     cols = []
-    labels = []
     tf = transforms.ToTensor()
     for m in FAMILIES:
         if m not in best:
             continue
-        last = sorted((best[m]["dir"] / "samples").glob("epoch_*.png"))
-        if not last:
-            continue
-        cols.append(tf(Image.open(last[-1]).convert("RGB")))
-        labels.append(m)
+        run = best[m]
+        panel = _sample_panel(run, n=16, nrow=4)
+        if panel is None:
+            last = sorted((run["dir"] / "samples").glob("epoch_*.png"))
+            if not last:
+                continue
+            panel = _square_panel(tf(Image.open(last[-1]).convert("RGB")))
+        else:
+            panel = _square_panel(panel)
+        cols.append(panel)
     if not cols:
         return None
     pad = 4
-    h = max(c.shape[1] for c in cols)
-    w = sum(c.shape[2] for c in cols) + pad * (len(cols) - 1)
-    canvas = torch.ones(3, h, w)
+    side = cols[0].shape[1]
+    w = side * len(cols) + pad * (len(cols) - 1)
+    canvas = torch.ones(3, side, w)
     x = 0
     for c in cols:
-        canvas[:, :c.shape[1], x:x + c.shape[2]] = c
-        x += c.shape[2] + pad
+        canvas[:, :, x : x + side] = c
+        x += side + pad
     out = FIG / "compare_grid.png"
     save_image(canvas, out)
     return out
@@ -257,6 +295,63 @@ def fig_ext_compare(runs: list[dict]) -> Path | None:
     return out
 
 
+def _partc_baseline_run(all_runs: list[dict]) -> dict | None:
+    rid = os.environ.get("PARTC_BASELINE_RID", "dcgan_e9574605_42")
+    for r in all_runs:
+        if r["dir"].name == rid:
+            return r
+    pool = [
+        r for r in all_runs
+        if r["model"] == "dcgan" and r["phase128"] and not r["partc"] and not r["mixed"] and r["fid"] is not None
+    ]
+    return min(pool, key=lambda r: r["fid"]) if pool else None
+
+
+def fig_partc_fid_bar(all_runs: list[dict], partc_runs: list[dict]) -> Path | None:
+    baseline = _partc_baseline_run(all_runs)
+    partc = next((r for r in partc_runs if r["model"] == "dcgan" and r["fid"] is not None), None)
+    if baseline is None or partc is None:
+        return None
+    labels = ["Phase B\n(baseline)", "Part C\n(G/D rebalance)"]
+    vals = [baseline["fid"], partc["fid"]]
+    fig, ax = plt.subplots(figsize=(4.5, 3))
+    ax.bar(labels, vals, color=["#4c72b0", "#55a868"])
+    for i, v in enumerate(vals):
+        ax.text(i, v, f"{v:.1f}", ha="center", va="bottom")
+    ax.set_ylabel("FID (lower = better)")
+    ax.set_title("DCGAN @128 — G/D rebalance (Part C)")
+    fig.tight_layout()
+    out = FIG / "fid_bar.png"
+    fig.savefig(out, dpi=110)
+    plt.close(fig)
+    return out
+
+
+def fig_gd_compare(all_runs: list[dict], partc_runs: list[dict]) -> Path | None:
+    baseline = _partc_baseline_run(all_runs)
+    partc = next((r for r in partc_runs if r["model"] == "dcgan"), None)
+    if baseline is None or partc is None:
+        return None
+    panels = []
+    for run, title in ((baseline, f"Phase B\nFID={baseline['fid']:.1f}"), (partc, f"Part C\nFID={partc['fid']:.1f}")):
+        panel = _sample_panel(run, n=16, nrow=4)
+        if panel is None:
+            return None
+        panels.append((panel, title))
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5.5))
+    tf = transforms.ToPILImage()
+    for ax, (panel, title) in zip(axes, panels):
+        ax.imshow(tf(panel))
+        ax.set_title(title, fontsize=12)
+        ax.axis("off")
+    fig.suptitle("DCGAN eval samples — baseline vs G/D rebalance", fontsize=13, y=1.02)
+    fig.tight_layout()
+    out = FIG / "gd_compare.png"
+    fig.savefig(out, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    return out
+
+
 def fig_interp_copy(runs: list[dict], model: str, out_name: str) -> Path | None:
     best = best_per_family(cat_only_runs(runs))
     if model not in best:
@@ -277,6 +372,20 @@ def main():
         print(f"no done runs for phase={PHASE}")
         return
     print(f"build_figures phase={PHASE} ({len(runs)} runs)")
+    if PHASE == "partc":
+        bar = fig_partc_fid_bar(all_runs, runs)
+        if bar:
+            print(f"wrote {bar}")
+        gd = fig_gd_compare(all_runs, runs)
+        if gd:
+            print(f"wrote {gd}")
+        grid = fig_compare_grid(runs)
+        if grid:
+            print(f"wrote {grid}")
+        p = fig_interp_copy(runs, "dcgan", "interp_dcgan.png")
+        if p:
+            print(f"wrote {p}")
+        return
     bar = fig_fid_bar(runs)
     print(f"wrote {bar}")
     grid = fig_compare_grid(runs)

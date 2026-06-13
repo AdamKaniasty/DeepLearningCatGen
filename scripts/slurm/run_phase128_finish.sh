@@ -1,41 +1,26 @@
 #!/usr/bin/env bash
-# Phase 128: train AAE+VQ (DCGAN cats if missing), pick best FID, train mixed ext for winner, eval + figures.
+# Finish phase128 after training done: eval VQ, extension, figures (no re-train).
 set -euo pipefail
 ROOT="${CATGEN_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
 cd "$ROOT"
-export CATGEN_TRAIN_N=3000
-export CATGEN_REF_N=1000
 export CATGEN_FID_N=1000
 export CATGEN_EXT_FID_N=400
 # shellcheck source=sizes.env
 source scripts/slurm/sizes.env
 # shellcheck source=phase128_lib.sh
 source scripts/slurm/phase128_lib.sh
+export CATGEN_DEVICE="${CATGEN_DEVICE:-cuda}"
 export SSL_CERT_FILE="${SSL_CERT_FILE:-$(python -m certifi)}"
 export REQUESTS_CA_BUNDLE="${REQUESTS_CA_BUNDLE:-$SSL_CERT_FILE}"
-export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
 
-bash scripts/slurm/link_data.sh
-python scripts/prepare_data.py \
-  --train-n "$CATGEN_TRAIN_N" \
-  --ref-n "$CATGEN_REF_N" \
-  --mixed-train "$CATGEN_MIXED_TRAIN_PER_CLASS" \
-  --mixed-ref "$CATGEN_MIXED_REF_PER_CLASS"
-python scripts/gen_phase128_configs.py
-
-DEVICE="${CATGEN_DEVICE:-cuda}"
-export CATGEN_DEVICE="$DEVICE"
+DCGAN_RID="${PHASE128_DCGAN_RID:-dcgan_e9574605_42}"
+AAE_RID="${PHASE128_AAE_RID:-aae_7ad02727_42}"
+VQ_RID="${PHASE128_VQ_RID:-vqvae_28e76f2a_42}"
+CAT_REF="fid_ref_1000.txt"
 MIXED_REF="mixed_ref_$((2 * CATGEN_MIXED_REF_PER_CLASS)).txt"
 
-DCGAN_CFG=src/catgen/configs/dcgan_128_t3000_z128_bs32.yaml
-AAE_CFG=src/catgen/configs/aae_128_t3000_z128_bs32.yaml
-VQ_CFG=src/catgen/configs/vqvae_128_t3000_K128_bs8.yaml
+phase128_log "=== phase128 finish (eval + extension) ==="
 
-DCGAN_RID=$(train_if_needed "$DCGAN_CFG")
-AAE_RID=$(train_if_needed "$AAE_CFG")
-VQ_RID=$(train_if_needed "$VQ_CFG")
-
-CAT_REF="fid_ref_${CATGEN_REF_N}.txt"
 for rid in "$DCGAN_RID" "$AAE_RID" "$VQ_RID"; do
   eval_run_if_needed "$rid" "$CAT_REF"
 done
@@ -55,4 +40,4 @@ eval_ext_run_if_needed "$EXT_RID" "$MIXED_REF" "$CATGEN_EXT_FID_N"
 
 write_phase128_report "$BEST_MODEL" "$EXT_CFG" "$EXT_RID" "$DCGAN_RID" "$AAE_RID" "$VQ_RID"
 finish_phase128_artifacts
-phase128_log "=== phase128 complete best=$BEST_MODEL ext=$EXT_RID ==="
+phase128_log "=== phase128 finish complete best=$BEST_MODEL ext=$EXT_RID ==="

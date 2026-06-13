@@ -1,5 +1,7 @@
 # Presentation Plan — Cat Generative Models
 
+**Slide deck (MARP):** [`slides.md`](slides.md) · export: `npm run presentation:pdf` (see [`README.md`](README.md))
+
 Three sections matching the project: dataset, what we do, experiments. Each bullet lists the artifact path that backs the slide.
 
 ## Training protocol (three parts for the story)
@@ -19,6 +21,17 @@ Shows that **resolution + data** matter more than small 64×64 tweaks.
 - **Cats vs dogs** only for the **best** of the three by cats-only FID (mixed `mixed_train_800`, same as extension).
 - Figures: `presentation/figures/phase128/` via `PRESENTATION_PHASE=phase128` (`fid_bar.png`, `compare_grid.png`, `interp_dcgan.png`, `interp_aae.png`, `ext_compare.png`).
 - Example DCGAN run: `dcgan_e9574605_42` (FID ~233 at 128×128). Leaderboard summary: `reports/phase128_best.json`.
+
+**Part C — DCGAN G/D rebalance @128 (optional follow-up)**  
+Same data as Part B (`train_3000`, 128×128); tune generator vs discriminator balance after `loss_g` plateau / D-winning curves in Phase B.
+
+| | Phase B (`dcgan_e9574605_42`) | Part C (`dcgan_30f57e20_42`) |
+|--|-------------------------------|------------------------------|
+| `lr` (G) | 1e-4 | **2e-4** |
+| `lr_d` | 2e-4 | **1e-4** |
+| `label_smooth` | 0.1 | **0.05** |
+
+Run on eden: `sbatch scripts/slurm/catgen_partc_tesla.sbatch` · figures: `PRESENTATION_PHASE=partc python scripts/build_figures.py` → `presentation/figures/partc/`
 
 **Slide order suggestion:** Dataset → Part A (sweep/refine table + weak 64×64 grids) → Part B (128×128 compare + samples + interpolation + extension for best model).
 

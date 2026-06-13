@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import lightning as L
@@ -89,10 +90,10 @@ def main():
             ckpt_path = artifacts.latest_checkpoint(d)
         if ckpt_path is None:
             raise SystemExit(f"[resume] no checkpoint in {d / 'checkpoints'}")
-        print(f"[resume] {rid} from {ckpt_path}")
+        print(f"[resume] {rid} from {ckpt_path}", file=sys.stderr)
 
     if artifacts.is_done(rid) and not args.force and ckpt_path is None:
-        print(f"[skip] {rid} already done")
+        print(f"[skip] {rid} already done", file=sys.stderr)
         return
 
     clear_cuda_cache()
@@ -186,7 +187,7 @@ def main():
     artifacts.write_summary(d, "\n".join(summary) + "\n")
     artifacts.mark_done(d, n_params=n_params)
     clear_cuda_cache()
-    print(f"[done] {rid}")
+    print(f"[done] {rid}", file=sys.stderr)
 
 
 if __name__ == "__main__":

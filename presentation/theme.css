@@ -1,0 +1,136 @@
+/* @theme catgen */
+
+section {
+  font-size: 26px;
+  padding: 36px 48px 58px;
+  overflow: hidden;
+  justify-content: flex-start;
+}
+
+h1 {
+  font-size: 1.55em;
+  margin-bottom: 0.35em;
+}
+
+h2 {
+  font-size: 1.15em;
+  color: #333;
+  margin: 0 0 0.35em;
+}
+
+h2 + p,
+h2 + ul {
+  margin-top: 0.25em;
+}
+
+ul {
+  margin: 0.35em 0;
+  padding-left: 1.1em;
+}
+
+li {
+  margin: 0.15em 0;
+}
+
+table {
+  font-size: 0.72em;
+  margin: 0.35em auto;
+}
+
+th,
+td {
+  padding: 0.3em 0.65em;
+}
+
+img {
+  max-width: 100%;
+  max-height: 300px;
+  height: auto;
+  width: auto;
+  display: block;
+  margin: 0.25em auto;
+  object-fit: contain;
+}
+
+/* Two figures side-by-side (Part A/B overview slides) */
+section.twocol h2 {
+  margin-bottom: 0.2em;
+}
+
+section.twocol ul {
+  margin-bottom: 0.35em;
+}
+
+section.twocol .figrow {
+  display: grid;
+  grid-template-columns: 38% 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.25em;
+}
+
+section.twocol .figrow img {
+  max-height: 280px;
+  margin: 0 auto;
+}
+
+/* Dense results slide: hero + interps + extension */
+section.dense {
+  font-size: 24px;
+  padding: 32px 44px 56px;
+}
+
+section.dense h2 {
+  font-size: 1.1em;
+}
+
+section.dense .hero-row {
+  display: grid;
+  grid-template-columns: 32% 34% 34%;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.2em 0;
+}
+
+section.dense .hero-row img {
+  max-height: 200px;
+  margin: 0 auto;
+}
+
+section.dense .caption {
+  font-size: 0.82em;
+  color: #444;
+  margin: 0.35em 0 0.15em;
+  text-align: center;
+}
+
+section.dense .wide-shot {
+  max-height: 165px;
+  width: auto;
+  max-width: 100%;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.columns img {
+  max-height: 260px;
+}
+
+.small {
+  font-size: 0.85em;
+  color: #444;
+}
+
+.lead {
+  text-align: center;
+}
+
+.lead h1,
+.lead h2 {
+  margin: 0.2em 0;
+}

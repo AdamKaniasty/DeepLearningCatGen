@@ -1,0 +1,12 @@
+{
+  "name": "deeplearningcatgen",
+  "private": true,
+  "devDependencies": {
+    "@marp-team/marp-cli": "^4.1.2"
+  },
+  "scripts": {
+    "presentation:stage": "bash scripts/stage_presentation_assets.sh",
+    "presentation:pdf": "npm run presentation:stage && npx @marp-team/marp-cli --no-stdin --theme presentation/themes/catgen.css presentation/slides.md -o presentation/catgen.pdf --allow-local-files",
+    "presentation:html": "npm run presentation:stage && npx @marp-team/marp-cli --no-stdin --theme presentation/themes/catgen.css presentation/slides.md -o presentation/catgen.html --allow-local-files"
+  }
+}

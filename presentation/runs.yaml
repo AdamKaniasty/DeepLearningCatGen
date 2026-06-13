@@ -1,0 +1,74 @@
+# Canonical run_ids and artifact paths for presentation staging.
+
+meta:
+  author: "Your Name"
+  course: "Deep Learning — Project III"
+  repo: "https://github.com/AdamKaniasty/DeepLearningCatGen"
+
+runs:
+  refine:
+    dcgan_cats: dcgan_5150b7dc_42
+    aae_cats: aae_b2d7b809_42
+    vqvae_cats: vqvae_fdb2d5a9_42
+    dcgan_mixed: dcgan_a9699485_42
+  phase128:
+    dcgan_cats: dcgan_e9574605_42
+    aae_cats: aae_7ad02727_42
+    vqvae_cats: vqvae_28e76f2a_42
+    best_model: dcgan
+    dcgan_mixed: dcgan_37b01f97_42
+  partc:
+    baseline: dcgan_e9574605_42
+    dcgan_cats: dcgan_30f57e20_42
+
+assets:
+  dataset:
+    preview: presentation/figures/dataset_preview_cats.png
+
+  part64:
+    fid_bar: presentation/figures/fid_bar.png
+    compare_grid: presentation/figures/compare_grid.png
+    dcgan_samples: runs/{refine.dcgan_cats}/samples/epoch_079.png
+    ext_compare: presentation/figures/ext_compare.png
+    interp_dcgan: presentation/figures/interp_dcgan.png
+    interp_aae: presentation/figures/interp_aae.png
+
+  part128:
+    fid_bar: presentation/figures/phase128/fid_bar.png
+    compare_grid: presentation/figures/phase128/compare_grid.png
+    hero_dcgan_dir: runs/{phase128.dcgan_cats}/eval/samples
+    hero_dcgan_n: 16
+    interp_dcgan: runs/{phase128.dcgan_cats}/eval/interpolation.png
+    interp_aae: runs/{phase128.aae_cats}/eval/interpolation.png
+    ext_compare: presentation/figures/phase128/ext_compare.png
+
+  partc:
+    fid_bar: presentation/figures/partc/fid_bar.png
+    gd_compare: presentation/figures/partc/gd_compare.png
+    compare_grid: presentation/figures/partc/compare_grid.png
+    interp_dcgan: presentation/figures/partc/interp_dcgan.png
+
+fid:
+  refine:
+    dcgan_cats: 287.0
+    aae_cats: 306.5
+    vqvae_cats: 421.0
+    dcgan_mixed: 275.9
+  phase128:
+    dcgan_cats: 233.0
+    aae_cats: 289.0
+    vqvae_cats: 489.8
+    dcgan_mixed: 271.0
+  partc:
+    baseline: 233.0
+    dcgan_cats: 243.1
+
+params:
+  refine:
+    dcgan: 9605568
+    aae: 7712193
+    vqvae: 498243
+  phase128:
+    dcgan: 9605568
+    aae: 11973697
+    vqvae: 498243

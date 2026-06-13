@@ -35,13 +35,13 @@ def main() -> None:
         },
     )
     emit(
-        "vqvae_128_t3000_K128_bs16",
+        "vqvae_128_t3000_K128_bs8",
         {
             "model": "vqvae",
             "seed": 42,
             "max_epochs": EPOCHS,
             "tags": ["phase128"],
-            "data": {**DATA_128, "split": "train_3000.txt", "batch_size": 16},
+            "data": {**DATA_128, "split": "train_3000.txt", "batch_size": 8},
             "model_args": {
                 "num_embeddings": 128,
                 "embedding_dim": 64,
@@ -85,7 +85,7 @@ def main() -> None:
         "seed": 42,
         "max_epochs": EPOCHS,
         "tags": ["phase128", "extension", "mixed"],
-        "data": {**DATA_128, "split": "mixed_train_800.txt", "batch_size": 16},
+        "data": {**DATA_128, "split": "mixed_train_800.txt", "batch_size": 8},
         "model_args": {
             "num_embeddings": 128,
             "embedding_dim": 64,
@@ -97,7 +97,7 @@ def main() -> None:
     }
     emit("dcgan_ext_128_mixed_bs32", dcgan_ext)
     emit("aae_ext_128_mixed_bs32", aae_ext)
-    emit("vqvae_ext_128_mixed_bs16", vqvae_ext)
+    emit("vqvae_ext_128_mixed_bs8", vqvae_ext)
     print(f"wrote phase128 configs to {OUT}")
 
 
