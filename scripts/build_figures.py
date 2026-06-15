@@ -136,10 +136,6 @@ def _square_panel(t: torch.Tensor, side: int = 530) -> torch.Tensor:
     import torch.nn.functional as F
 
     _, h, w = t.shape
-    # VQ-VAE logs input+recon rows in one wide strip — keep reconstructions only
-    if w > h * 3 and h >= 2:
-        t = t[:, h // 2 :, :]
-        _, h, w = t.shape
     scale = side / max(h, w)
     nh, nw = max(1, int(h * scale)), max(1, int(w * scale))
     t = F.interpolate(t.unsqueeze(0), size=(nh, nw), mode="bilinear", align_corners=False).squeeze(0)
@@ -223,6 +219,21 @@ def _sample_panel(run: dict, n: int = 16, nrow: int = 4) -> torch.Tensor | None:
         img = Image.open(last[-1]).convert("RGB")
         w, h = img.size
         side = int(n**0.5)
+        # VQ-VAE training snapshots are logged as a 2x16 strip:
+        # first row inputs, second row reconstructions. Use the reconstruction
+        # row and rebuild it as a square grid for comparison slides.
+        if w > h * 3:
+            cols = n
+            cell_w = w // cols
+            cell_h = h // 2
+            y0 = cell_h
+            tiles = [
+                img.crop((col * cell_w, y0, (col + 1) * cell_w, y0 + cell_h)).resize((cell_h, cell_h))
+                for col in range(cols)
+            ]
+            imgs = [transforms.ToTensor()(t) for t in tiles[:n]]
+            from torchvision.utils import make_grid
+            return make_grid(imgs, nrow=nrow, padding=2, normalize=False)
         cell = w // side
         tiles = []
         for row in range(side):

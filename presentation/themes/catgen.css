@@ -81,6 +81,53 @@ section.content img.hero {
   max-height: 460px;
 }
 
+section.content .curves {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin-top: 0.35em;
+}
+
+section.content .curves img {
+  width: 100%;
+  max-height: 285px;
+  margin: 0;
+  object-fit: contain;
+}
+
+section.content .curves.two {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+section.content .curves.two img {
+  max-height: 360px;
+}
+
+section.figure .panel-labels {
+  display: grid;
+  gap: 12px;
+  margin: 0.45em auto 0;
+  width: min(980px, 100%);
+  text-align: center;
+  font-size: 0.72em;
+  line-height: 1.15;
+  color: #333;
+}
+
+section.figure .panel-labels.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+section.figure .panel-labels.two {
+  grid-template-columns: repeat(2, 1fr);
+  width: min(1050px, 100%);
+}
+
+section.figure .panel-labels span {
+  display: block;
+}
+
 /* Latent interpolation (wide horizontal strips → stack, scale by height) */
 section.pair h2 {
   margin-bottom: 0.25em;

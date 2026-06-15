@@ -1,0 +1,70 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{goodfellow2014gan}
+\citation{radford2015dcgan}
+\citation{makhzani2015aae}
+\citation{oord2017vqvae}
+\citation{heusel2017fid}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction and Research Question}{2}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Theoretical Background and Literature Review}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Generative Adversarial Networks and DCGAN}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Adversarial Autoencoders}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}VQ-VAE}{2}{subsection.2.3}\protected@file@percent }
+\citation{kagglecats}
+\citation{kaggledogsvscats}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}FID and Qualitative Evaluation}{3}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Dataset and Preprocessing}{3}{section.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Preprocessed cat training examples.}}{3}{figure.1}\protected@file@percent }
+\newlabel{fig:dataset-preview}{{1}{3}{Preprocessed cat training examples}{figure.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Models and Training Pipeline}{3}{section.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Main model families.}}{3}{table.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Hyperparameter Optimization and Experiment Design}{4}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Experiments}{4}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Part A: 64x64 Sweep and Refinement}{4}{subsection.6.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Representative 64x64 refined results.}}{4}{table.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces 64x64 FID comparison. Lower is better.}}{5}{figure.2}\protected@file@percent }
+\newlabel{fig:part64-fid}{{2}{5}{64x64 FID comparison. Lower is better}{figure.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces 64x64 generated sample grids for DCGAN, AAE, and VQ-VAE.}}{5}{figure.3}\protected@file@percent }
+\newlabel{fig:part64-grid}{{3}{5}{64x64 generated sample grids for DCGAN, AAE, and VQ-VAE}{figure.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Part B: 128x128 Main Comparison}{5}{subsection.6.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Main 128x128 results.}}{5}{table.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces 128x128 FID comparison.}}{6}{figure.4}\protected@file@percent }
+\newlabel{fig:part128-fid}{{4}{6}{128x128 FID comparison}{figure.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces 128x128 generated sample grids for DCGAN, AAE, and VQ-VAE.}}{6}{figure.5}\protected@file@percent }
+\newlabel{fig:part128-grid}{{5}{6}{128x128 generated sample grids for DCGAN, AAE, and VQ-VAE}{figure.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Part C: DCGAN Generator/Discriminator Rebalance}{6}{subsection.6.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces DCGAN Phase B baseline versus Part C rebalance.}}{7}{table.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Phase B DCGAN baseline versus Part C rebalance sample comparison.}}{7}{figure.6}\protected@file@percent }
+\newlabel{fig:partc-gd}{{6}{7}{Phase B DCGAN baseline versus Part C rebalance sample comparison}{figure.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Cats-and-Dogs Extension}{7}{subsection.6.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Cats-only versus mixed cats-and-dogs DCGAN sample comparison.}}{8}{figure.7}\protected@file@percent }
+\newlabel{fig:extension}{{7}{8}{Cats-only versus mixed cats-and-dogs DCGAN sample comparison}{figure.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Learning Curves and Checkpoint Analysis}{8}{section.7}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Learning curves for the best 128x128 DCGAN run.}}{8}{figure.8}\protected@file@percent }
+\newlabel{fig:curves-dcgan}{{8}{8}{Learning curves for the best 128x128 DCGAN run}{figure.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Learning curves for the 128x128 AAE run.}}{9}{figure.9}\protected@file@percent }
+\newlabel{fig:curves-aae}{{9}{9}{Learning curves for the 128x128 AAE run}{figure.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Learning curves for the 128x128 VQ-VAE run.}}{9}{figure.10}\protected@file@percent }
+\newlabel{fig:curves-vqvae}{{10}{9}{Learning curves for the 128x128 VQ-VAE run}{figure.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Qualitative Result Analysis}{9}{section.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Best 128x128 DCGAN sample panel.}}{10}{figure.11}\protected@file@percent }
+\newlabel{fig:hero-dcgan}{{11}{10}{Best 128x128 DCGAN sample panel}{figure.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces DCGAN latent interpolation at 128x128.}}{10}{figure.12}\protected@file@percent }
+\newlabel{fig:interp-dcgan}{{12}{10}{DCGAN latent interpolation at 128x128}{figure.12}{}}
+\bibstyle{plain}
+\bibdata{references}
+\bibcite{goodfellow2014gan}{1}
+\bibcite{heusel2017fid}{2}
+\bibcite{kaggledogsvscats}{3}
+\bibcite{kagglecats}{4}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces AAE latent interpolation at 128x128.}}{11}{figure.13}\protected@file@percent }
+\newlabel{fig:interp-aae}{{13}{11}{AAE latent interpolation at 128x128}{figure.13}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {9}AI Usage Declaration}{11}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10}Limitations}{11}{section.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {11}Conclusions}{11}{section.11}\protected@file@percent }
+\bibcite{makhzani2015aae}{5}
+\bibcite{radford2015dcgan}{6}
+\bibcite{oord2017vqvae}{7}
+\gdef \@abspage@last{12}

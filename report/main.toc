@@ -1,0 +1,19 @@
+\contentsline {section}{\numberline {1}Introduction and Research Question}{2}{section.1}%
+\contentsline {section}{\numberline {2}Theoretical Background and Literature Review}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Generative Adversarial Networks and DCGAN}{2}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Adversarial Autoencoders}{2}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}VQ-VAE}{2}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}FID and Qualitative Evaluation}{3}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Dataset and Preprocessing}{3}{section.3}%
+\contentsline {section}{\numberline {4}Models and Training Pipeline}{3}{section.4}%
+\contentsline {section}{\numberline {5}Hyperparameter Optimization and Experiment Design}{4}{section.5}%
+\contentsline {section}{\numberline {6}Experiments}{4}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Part A: 64x64 Sweep and Refinement}{4}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Part B: 128x128 Main Comparison}{5}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Part C: DCGAN Generator/Discriminator Rebalance}{6}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Cats-and-Dogs Extension}{7}{subsection.6.4}%
+\contentsline {section}{\numberline {7}Learning Curves and Checkpoint Analysis}{8}{section.7}%
+\contentsline {section}{\numberline {8}Qualitative Result Analysis}{9}{section.8}%
+\contentsline {section}{\numberline {9}AI Usage Declaration}{11}{section.9}%
+\contentsline {section}{\numberline {10}Limitations}{11}{section.10}%
+\contentsline {section}{\numberline {11}Conclusions}{11}{section.11}%
